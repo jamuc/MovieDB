@@ -10,24 +10,22 @@ import XCTest
 
 class MovieKitTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
+    // This test case will throw and exception if the coding keys
+    // don't match to the API response recording.
+    func testJSONDecodingForTopRatedMovies() throws {
+        let url = Bundle(for: MovieKitTests.self).url(forResource: "top_rated_movies", withExtension: "json")!
+        let data = try! Data(contentsOf: url)
+        let decoder = JSONDecoder()
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "YYYY-MM-DD"
+        decoder.dateDecodingStrategy = .formatted(dateFormatter)
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
+        // will throw exception if I messed up the coding keys
+        let response = try! decoder.decode(MoviesResponse.self, from: data)
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+        XCTAssertEqual(response.page, 1)
+        XCTAssertEqual(response.totalPages, 405)
     }
-
 }
