@@ -12,6 +12,17 @@ public final class MovieRepository {
     private let apiKey = "api_key"
     private let networkRequest: NetworkRequestProtocol
 
+    private var jsonDecoder: JSONDecoder = {
+        let jsonDecoder = JSONDecoder()
+        jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "YYYY-MM-DD"
+        jsonDecoder.dateDecodingStrategy = .formatted(dateFormatter)
+
+        return jsonDecoder
+    }()
+
     // NetworkRequest is injected so that we can supply a mock
     // for testing
     init(_ networkRequest: NetworkRequestProtocol = NetworkRequest()) {
@@ -39,22 +50,26 @@ public final class MovieRepository {
             completion(self.parse(result))
         }
     }
+    
+    public func fetchMovie(id: Int, completion: @escaping (Result<Movie, Error>) -> Void) {
+        guard let url = URL(string: "\(baseAPIURL)/movie/\(id)?api_key=\(apiKey)&append_to_response=videos,credits") else {
+            completion(.failure(MovieError.invalidEndpoint))
+            return
+        }
+        
+        networkRequest.execute(url: url) { result in
+            completion(self.parse(result))
+        }
+    }
 
-    private func parse(_ result: Result<Data, Error>) -> Result<MoviesResponse, Error> {
-        let jsonDecoder = JSONDecoder()
-        jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
-
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "YYYY-MM-DD"
-        jsonDecoder.dateDecodingStrategy = .formatted(dateFormatter)
-
+    private func parse<T: Decodable>(_ result: Result<Data, Error>) -> Result<T, Error> {
         switch(result) {
         case .failure(let error):
             return Result.failure(error)
         case .success(let data):
             do {
-                let moviesResponse = try jsonDecoder.decode(MoviesResponse.self, from: data)
-                return Result.success(moviesResponse)
+                let decoded = try jsonDecoder.decode(T.self, from: data)
+                return Result.success(decoded)
             } catch {
                 return Result.failure(MovieError.serializationError)
             }

@@ -11,7 +11,7 @@ import XCTest
 class MovieRepositoryTests: XCTestCase {
 
     func testFetchMoviesForTopRatedEndpoint() throws {
-        let sut = MovieRepository(MockSuccessfulNewtworkRequest())
+        let sut = MovieRepository(MockSuccessfulFetchMoviesRequest())
 
         sut.fetchMovies(from: MovieEndpoint.topRated) { result in
             switch(result) {
@@ -27,8 +27,9 @@ class MovieRepositoryTests: XCTestCase {
             }
         }
     }
+    
     func testFetchMoviesWithServerError() throws {
-        let sut = MovieRepository(MockFailedNetworkRequest())
+        let sut = MovieRepository(MockFailedFetchMoviesRequest())
 
         sut.fetchMovies(from: MovieEndpoint.topRated) { result in
             switch(result) {
@@ -44,9 +45,38 @@ class MovieRepositoryTests: XCTestCase {
             }
         }
     }
+
+    func testFetchMovieWithValidID() throws {
+        let sut = MovieRepository(MockSuccessfulFetchMovieRequest())
+        sut.fetchMovie(id: 1) { result in
+            switch(result) {
+            case .failure(let error):
+                assertionFailure("Expected this test to pass. It failed with error \(error)")
+                break
+            case .success(let movie):
+                XCTAssertEqual(movie.title, "Fight Club")
+            }
+        }
+    }
+    func testFetchMovieWithInvalidID() throws {
+        let sut = MovieRepository(MockFailedFetchMovieRequestWithWrongID())
+        sut.fetchMovie(id: 1) { result in
+            switch(result) {
+            case .success(_):
+                assertionFailure("The success case should not have been called.")
+                break
+            case .failure(let error):
+                if let error = error as? MovieError {
+                    XCTAssertEqual(error, .invalidEndpoint)
+                    break
+                }
+                assertionFailure("Error raised wes not of type Invalid Endpoint")
+            }
+        }
+    }
 }
 
-private final class MockSuccessfulNewtworkRequest: NetworkRequestProtocol {
+private final class MockSuccessfulFetchMoviesRequest: NetworkRequestProtocol {
     func execute(url: URL, completion: @escaping (Result<Data, Error>) -> Void) {
         let resourceURL = Bundle(for: MovieRepositoryTests.self).url(forResource: "top_rated_movies", withExtension: "json")!
         let data = try! Data(contentsOf: resourceURL)
@@ -55,8 +85,23 @@ private final class MockSuccessfulNewtworkRequest: NetworkRequestProtocol {
     }
 }
 
-private final class MockFailedNetworkRequest: NetworkRequestProtocol {
+private final class MockFailedFetchMoviesRequest: NetworkRequestProtocol {
     func execute(url: URL, completion: @escaping (Result<Data, Error>) -> Void) {
         completion(.failure(MovieError.apiError))
+    }
+}
+
+private final class MockSuccessfulFetchMovieRequest: NetworkRequestProtocol {
+    func execute(url: URL, completion: @escaping (Result<Data, Error>) -> Void) {
+        let resourceURL = Bundle(for: MovieRepositoryTests.self).url(forResource: "movie", withExtension: "json")!
+        let data = try! Data(contentsOf: resourceURL)
+
+        completion(.success(data))
+    }
+}
+
+private final class MockFailedFetchMovieRequestWithWrongID: NetworkRequestProtocol {
+    func execute(url: URL, completion: @escaping (Result<Data, Error>) -> Void) {
+        completion(.failure(MovieError.invalidEndpoint))
     }
 }
