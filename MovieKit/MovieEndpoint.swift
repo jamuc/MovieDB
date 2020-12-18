@@ -21,4 +21,21 @@ public enum MovieEndpoint: String, CustomStringConvertible, CaseIterable {
             return "Top Rated"
         }
     }
+
+    public var symbol: String {
+        switch self {
+        case .nowPlaying:
+            return "play.fill"
+        case .upcoming:
+            return "goforward.10"
+        case .popular:
+            return "goforward"
+        case .topRated:
+            return "goforward.plus"
+        }
+    }
+}
+
+extension MovieEndpoint: Identifiable {
+    public var id: MovieEndpoint { self }
 }

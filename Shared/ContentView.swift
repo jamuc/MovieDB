@@ -6,11 +6,20 @@
 //
 
 import SwiftUI
+import MovieKit
 
 struct ContentView: View {
     var body: some View {
-        Text("Hello, world!")
-            .padding()
+        TabView {
+            ForEach(MovieEndpoint.allCases) { endpoint in
+                Text(endpoint.description)
+                    .tabItem {
+                        Image(systemName: endpoint.symbol)
+                        Text(endpoint.description)
+                    }
+            }
+        }
+        .font(.headline)
     }
 }
 
