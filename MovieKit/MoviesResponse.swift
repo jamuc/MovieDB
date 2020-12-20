@@ -21,7 +21,7 @@ public struct MoviesResponse: Codable {
 /*
  * Stores all the information of a specific Movie object
  */
-public struct Movie: Codable {
+public struct Movie: Codable, Identifiable {
     public let id: Int
     public let title: String
     public let backdropPath: String

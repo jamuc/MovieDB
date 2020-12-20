@@ -12,7 +12,7 @@ struct ContentView: View {
     var body: some View {
         TabView {
             ForEach(MovieEndpoint.allCases) { endpoint in
-                Text(endpoint.description)
+                MovieListView(endpoint: endpoint)
                     .tabItem {
                         Image(systemName: endpoint.symbol)
                         Text(endpoint.description)

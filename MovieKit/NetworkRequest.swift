@@ -11,8 +11,10 @@ public protocol NetworkRequestProtocol {
 /*
  * Networklayer of the application. Handle the URLSession and loading data from the newtwork.
  */
-class NetworkRequest: NetworkRequestProtocol {
-    func execute(url: URL, completion: @escaping (Result<Data, Error>) -> Void) {
+public class NetworkRequest: NetworkRequestProtocol {
+
+    public init() {}
+    public func execute(url: URL, completion: @escaping (Result<Data, Error>) -> Void) {
         URLSession.shared.dataTask(with: url) { (data, response, error) in
             if error != nil {
                 completion(.failure(MovieError.apiError))
@@ -30,6 +32,6 @@ class NetworkRequest: NetworkRequestProtocol {
             }
 
             completion(.success(data))
-        }
+        }.resume()
     }
 }
