@@ -25,7 +25,7 @@ public final class MovieRepository {
 
     // NetworkRequest is injected so that we can supply a mock
     // for testing
-    init(_ networkRequest: NetworkRequestProtocol = NetworkRequest()) {
+    public init(_ networkRequest: NetworkRequestProtocol = NetworkRequest()) {
         self.networkRequest = networkRequest
     }
 
